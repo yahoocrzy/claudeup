@@ -18,7 +18,8 @@ const config = {
   },
   webhook: {
     secret: process.env.WEBHOOK_SECRET
-  }
+  },
+  apiKey: process.env.API_KEY
 };
 
 module.exports = config;

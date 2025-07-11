@@ -6,6 +6,12 @@ Our team now has access to an AI-powered integration that connects Claude AI wit
 
 **API Base URL:** `https://claudeup.onrender.com`
 
+## 🔑 API Key Setup
+
+**Your team API key:** `your_team_api_key` *(Ask your tech lead for the actual key)*
+
+All API requests require the `X-API-Key` header with your team's API key. This ensures only authorized team members can create tasks and access the integration.
+
 ---
 
 ## 📋 What You Can Do
@@ -35,6 +41,7 @@ Our team now has access to an AI-powered integration that connects Claude AI wit
 ```bash
 curl -X POST https://claudeup.onrender.com/api/claude-to-clickup \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: your_team_api_key" \
   -d '{
     "prompt": "Create a task to implement user authentication with OAuth2 including Google and GitHub login options"
   }'
@@ -44,6 +51,7 @@ curl -X POST https://claudeup.onrender.com/api/claude-to-clickup \
 ```bash
 curl -X POST https://claudeup.onrender.com/api/clickup-to-claude \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: your_team_api_key" \
   -d '{
     "taskId": "86a9z79jh",
     "action": "analyze"
@@ -54,6 +62,7 @@ curl -X POST https://claudeup.onrender.com/api/clickup-to-claude \
 ```bash
 curl -X POST https://claudeup.onrender.com/api/claude-to-clickup \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: your_team_api_key" \
   -d '{
     "prompt": "What are the security considerations for this authentication feature?",
     "taskId": "86a9z79jh"
@@ -64,7 +73,9 @@ curl -X POST https://claudeup.onrender.com/api/claude-to-clickup \
 
 1. **Set Request Type:** POST
 2. **Set URL:** `https://claudeup.onrender.com/api/claude-to-clickup`
-3. **Set Headers:** `Content-Type: application/json`
+3. **Set Headers:** 
+   - `Content-Type: application/json`
+   - `X-API-Key: your_team_api_key`
 4. **Set Body (JSON):**
    ```json
    {
@@ -76,11 +87,12 @@ curl -X POST https://claudeup.onrender.com/api/claude-to-clickup \
 
 ```javascript
 // Create a task
-async function createAITask(description) {
+async function createAITask(description, apiKey) {
   const response = await fetch('https://claudeup.onrender.com/api/claude-to-clickup', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'X-API-Key': apiKey
     },
     body: JSON.stringify({
       prompt: description
@@ -92,7 +104,7 @@ async function createAITask(description) {
 }
 
 // Usage
-createAITask("Create a task for implementing dark mode toggle with user preferences");
+createAITask("Create a task for implementing dark mode toggle with user preferences", "your_team_api_key");
 ```
 
 ---
