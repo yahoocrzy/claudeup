@@ -7,6 +7,11 @@ const authenticateRequest = (req, res, next) => {
     return next();
   }
 
+  // Skip auth if no API_KEY is configured (for easy setup)
+  if (!process.env.API_KEY) {
+    return next();
+  }
+
   const apiKey = req.headers['x-api-key'] || req.headers['authorization']?.replace('Bearer ', '');
   
   if (!apiKey) {
