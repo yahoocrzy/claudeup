@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude AI for ClickUp - Web Widget</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 800px;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            color: #666;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        textarea, input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e4e8;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        textarea {
+            height: 120px;
+            resize: vertical;
+        }
+
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #e1e4e8;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+            border-color: #667eea;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .result.loading {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .ai-response {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+            white-space: pre-wrap;
+            font-family: inherit;
+            line-height: 1.6;
+        }
+
+        .task-link {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .task-link:hover {
+            background: #5a6fd8;
+        }
+
+        .copy-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .copy-btn:hover {
+            background: #218838;
+        }
+
+        .instructions {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .instructions h3 {
+            color: #17a2b8;
+            margin-bottom: 10px;
+        }
+
+        .instructions p {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+
+        .bookmarklet {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+            border: 2px dashed #667eea;
+        }
+
+        .bookmarklet h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .bookmarklet-link {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 12px 20px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+
+        .bookmarklet-link:hover {
+            background: #5a6fd8;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            button {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Claude AI for ClickUp</h1>
+            <p>Create and analyze tasks with artificial intelligence</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('create')">✨ Create Task</button>
+            <button class="tab" onclick="switchTab('analyze')">📊 Analyze</button>
+            <button class="tab" onclick="switchTab('enhance')">🚀 Enhance</button>
+            <button class="tab" onclick="switchTab('setup')">⚙️ Setup</button>
+        </div>
+
+        <div class="content">
+            <!-- Create Task Tab -->
+            <div class="tab-content active" id="create-tab">
+                <div class="instructions">
+                    <h3>📝 Create AI-Powered Tasks</h3>
+                    <p>Describe what you want to build and Claude will create a detailed task with acceptance criteria.</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="create-prompt">Task Description:</label>
+                    <textarea id="create-prompt" placeholder="Examples:
+• Create a user authentication system with email/password
+• Build a REST API for order management  
+• Design a responsive dashboard with charts
+• Implement OAuth2 login with Google and GitHub"></textarea>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="createTask()">
+                        ✨ Create AI Task
+                    </button>
+                    <button class="btn-secondary" onclick="copyToClickUp()">
+                        📋 Copy for ClickUp
+                    </button>
+                </div>
+            </div>
+
+            <!-- Analyze Task Tab -->
+            <div class="tab-content" id="analyze-tab">
+                <div class="instructions">
+                    <h3>📊 Analyze Existing Tasks</h3>
+                    <p>Get AI insights on task complexity, time estimates, and implementation suggestions.</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="task-url">ClickUp Task URL or ID:</label>
+                    <input type="text" id="task-url" placeholder="https://app.clickup.com/t/86a9z79jh or just: 86a9z79jh">
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="analyzeTask()">
+                        📊 Analyze Task
+                    </button>
+                    <button class="btn-secondary" onclick="addAIComment()">
+                        💬 Add AI Comment
+                    </button>
+                </div>
+            </div>
+
+            <!-- Enhance Tab -->
+            <div class="tab-content" id="enhance-tab">
+                <div class="instructions">
+                    <h3>🚀 Enhance Descriptions</h3>
+                    <p>Transform brief task descriptions into detailed, actionable requirements.</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="enhance-text">Brief Description:</label>
+                    <textarea id="enhance-text" placeholder="Enter a brief task description to enhance:
+• user login
+• payment system  
+• mobile app
+• database optimization"></textarea>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="enhanceDescription()">
+                        🚀 Enhance with AI
+                    </button>
+                    <button class="btn-secondary" onclick="copyEnhanced()">
+                        📋 Copy Enhanced
+                    </button>
+                </div>
+            </div>
+
+            <!-- Setup Tab -->
+            <div class="tab-content" id="setup-tab">
+                <div class="instructions">
+                    <h3>⚙️ Quick Setup</h3>
+                    <p>Two ways to use Claude AI with ClickUp:</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="username">Team Username:</label>
+                    <input type="text" id="username" placeholder="teamuser" value="teamuser">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Team Password:</label>
+                    <input type="password" id="password" placeholder="teampass123" value="teampass123">
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="testConnection()">
+                        🔗 Test Connection
+                    </button>
+                    <button class="btn-secondary" onclick="saveCredentials()">
+                        💾 Save Credentials
+                    </button>
+                </div>
+
+                <div class="bookmarklet">
+                    <h3>🔗 One-Click ClickUp Integration</h3>
+                    <p>Drag this button to your bookmarks bar, then click it while on ClickUp:</p>
+                    <a href="javascript:(function(){const s=document.createElement('script');s.src='https://claudeup.onrender.com/widget.js';document.head.appendChild(s);})();" class="bookmarklet-link">
+                        🤖 Claude AI Widget
+                    </a>
+                    <p style="margin-top: 10px; font-size: 13px; color: #666;">
+                        Alternative: Use this web interface for all Claude AI features without bookmarks.
+                    </p>
+                </div>
+            </div>
+
+            <div class="result" id="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_URL = 'https://claudeup.onrender.com';
+        let credentials = null;
+
+        // Load saved credentials
+        function loadCredentials() {
+            const saved = localStorage.getItem('claude-credentials');
+            if (saved) {
+                const creds = JSON.parse(saved);
+                document.getElementById('username').value = creds.username || 'teamuser';
+                document.getElementById('password').value = creds.password || 'teampass123';
+                updateCredentials();
+            }
+        }
+
+        // Save credentials
+        function saveCredentials() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            localStorage.setItem('claude-credentials', JSON.stringify({
+                username: username,
+                password: password
+            }));
+            
+            updateCredentials();
+            showResult('✅ Credentials saved successfully!', 'success');
+        }
+
+        // Update credentials
+        function updateCredentials() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            credentials = btoa(username + ':' + password);
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            hideResult();
+        }
+
+        // Test connection
+        async function testConnection() {
+            updateCredentials();
+            
+            if (!credentials) {
+                showResult('❌ Please enter username and password first', 'error');
+                return;
+            }
+
+            showResult('🔄 Testing connection...', 'loading');
+
+            try {
+                const response = await fetch(API_URL + '/health');
+                
+                if (response.ok) {
+                    showResult('✅ Connection successful! API is online and ready.', 'success');
+                } else {
+                    showResult('❌ API connection failed. Please try again later.', 'error');
+                }
+            } catch (error) {
+                showResult('❌ Network error: ' + error.message, 'error');
+            }
+        }
+
+        // Create task
+        async function createTask() {
+            updateCredentials();
+            
+            const prompt = document.getElementById('create-prompt').value.trim();
+            if (!prompt) {
+                showResult('❌ Please enter a task description', 'error');
+                return;
+            }
+
+            if (!credentials) {
+                showResult('❌ Please set up credentials in the Setup tab first', 'error');
+                return;
+            }
+
+            showResult('🤖 Creating AI-powered task...', 'loading');
+
+            try {
+                const response = await fetch(API_URL + '/api/claude-to-clickup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Basic ' + credentials
+                    },
+                    body: JSON.stringify({ prompt: prompt })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showResult(`
+                        <h3>✅ Task Created Successfully!</h3>
+                        <p><strong>Name:</strong> ${result.task.name}</p>
+                        <p><strong>ID:</strong> ${result.task.id}</p>
+                        ${result.task.url ? `<a href="${result.task.url}" target="_blank" class="task-link">🔗 Open in ClickUp</a>` : ''}
+                        <div class="ai-response">${result.claudeResponse}</div>
+                        <button class="copy-btn" onclick="copyToClipboard('${result.claudeResponse.replace(/'/g, "\\'")}')">📋 Copy Description</button>
+                    `, 'success');
+                    
+                    document.getElementById('create-prompt').value = '';
+                } else {
+                    showResult('❌ Error: ' + (result.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showResult('❌ Network error: ' + error.message, 'error');
+            }
+        }
+
+        // Analyze task
+        async function analyzeTask() {
+            updateCredentials();
+            
+            const taskInput = document.getElementById('task-url').value.trim();
+            if (!taskInput) {
+                showResult('❌ Please enter a task URL or ID', 'error');
+                return;
+            }
+
+            if (!credentials) {
+                showResult('❌ Please set up credentials in the Setup tab first', 'error');
+                return;
+            }
+
+            const taskId = extractTaskId(taskInput);
+            if (!taskId) {
+                showResult('❌ Could not extract task ID from input', 'error');
+                return;
+            }
+
+            showResult('🤖 Analyzing task with AI...', 'loading');
+
+            try {
+                const response = await fetch(API_URL + '/api/clickup-to-claude', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Basic ' + credentials
+                    },
+                    body: JSON.stringify({ taskId: taskId, action: 'analyze' })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showResult(`
+                        <h3>📊 Task Analysis Complete</h3>
+                        <p><strong>Task:</strong> ${result.task.name}</p>
+                        <p><strong>Status:</strong> ${result.task.status?.status || 'Unknown'}</p>
+                        <div class="ai-response">${result.claudeResponse}</div>
+                        <button class="copy-btn" onclick="copyToClipboard('${result.claudeResponse.replace(/'/g, "\\'")}')">📋 Copy Analysis</button>
+                    `, 'success');
+                } else {
+                    showResult('❌ Error: ' + (result.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showResult('❌ Network error: ' + error.message, 'error');
+            }
+        }
+
+        // Add AI comment
+        async function addAIComment() {
+            updateCredentials();
+            
+            const taskInput = document.getElementById('task-url').value.trim();
+            if (!taskInput) {
+                showResult('❌ Please enter a task URL or ID', 'error');
+                return;
+            }
+
+            if (!credentials) {
+                showResult('❌ Please set up credentials in the Setup tab first', 'error');
+                return;
+            }
+
+            const taskId = extractTaskId(taskInput);
+            if (!taskId) {
+                showResult('❌ Could not extract task ID from input', 'error');
+                return;
+            }
+
+            showResult('🤖 Adding AI comment to task...', 'loading');
+
+            try {
+                const response = await fetch(API_URL + '/api/claude-to-clickup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Basic ' + credentials
+                    },
+                    body: JSON.stringify({ 
+                        prompt: 'Provide helpful insights, recommendations, and best practices for this task',
+                        taskId: taskId 
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showResult(`
+                        <h3>💬 AI Comment Added!</h3>
+                        <p>Claude has added intelligent insights to task ID: ${taskId}</p>
+                        <div class="ai-response">${result.comment?.comment_text || 'Comment added successfully'}</div>
+                        <a href="https://app.clickup.com/t/${taskId}" target="_blank" class="task-link">🔗 View Task in ClickUp</a>
+                    `, 'success');
+                } else {
+                    showResult('❌ Error: ' + (result.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showResult('❌ Network error: ' + error.message, 'error');
+            }
+        }
+
+        // Enhance description
+        async function enhanceDescription() {
+            updateCredentials();
+            
+            const text = document.getElementById('enhance-text').value.trim();
+            if (!text) {
+                showResult('❌ Please enter text to enhance', 'error');
+                return;
+            }
+
+            if (!credentials) {
+                showResult('❌ Please set up credentials in the Setup tab first', 'error');
+                return;
+            }
+
+            showResult('🤖 Enhancing description with AI...', 'loading');
+
+            try {
+                const response = await fetch(API_URL + '/api/claude-to-clickup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Basic ' + credentials
+                    },
+                    body: JSON.stringify({ 
+                        prompt: `Enhance and expand this brief task description into a detailed, actionable task with clear requirements and acceptance criteria: "${text}"` 
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showResult(`
+                        <h3>🚀 Description Enhanced!</h3>
+                        <div class="ai-response">${result.claudeResponse}</div>
+                        <button class="copy-btn" onclick="copyToClipboard('${result.claudeResponse.replace(/'/g, "\\'")}')">📋 Copy Enhanced Version</button>
+                    `, 'success');
+                } else {
+                    showResult('❌ Error: ' + (result.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showResult('❌ Network error: ' + error.message, 'error');
+            }
+        }
+
+        // Copy to ClickUp
+        function copyToClickUp() {
+            const prompt = document.getElementById('create-prompt').value.trim();
+            if (!prompt) {
+                showResult('❌ Please enter a task description first', 'error');
+                return;
+            }
+
+            copyToClipboard(prompt);
+            showResult('📋 Task description copied! Paste it into ClickUp.', 'success');
+        }
+
+        // Copy enhanced
+        function copyEnhanced() {
+            const text = document.getElementById('enhance-text').value.trim();
+            if (!text) {
+                showResult('❌ Please enter text to copy', 'error');
+                return;
+            }
+
+            copyToClipboard(text);
+            showResult('📋 Text copied to clipboard!', 'success');
+        }
+
+        // Utility functions
+        function extractTaskId(input) {
+            const urlMatch = input.match(/\/t\/([a-zA-Z0-9]+)/);
+            if (urlMatch) return urlMatch[1];
+            
+            if (/^[a-zA-Z0-9]+$/.test(input)) return input;
+            
+            return null;
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).catch(() => {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+            });
+        }
+
+        function showResult(html, type) {
+            const result = document.getElementById('result');
+            result.innerHTML = html;
+            result.className = 'result ' + type;
+            result.style.display = 'block';
+            result.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function hideResult() {
+            document.getElementById('result').style.display = 'none';
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCredentials();
+        });
+
+        // Enter key handling
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                const activeTab = document.querySelector('.tab-content.active');
+                if (activeTab.id === 'create-tab') {
+                    createTask();
+                } else if (activeTab.id === 'analyze-tab') {
+                    analyzeTask();
+                } else if (activeTab.id === 'enhance-tab') {
+                    enhanceDescription();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
