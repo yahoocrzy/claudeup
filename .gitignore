@@ -40,6 +40,9 @@ coverage/
 dist/
 build/
 
+# But don't ignore public directory
+!public/
+
 # Temporary files
 tmp/
 temp/

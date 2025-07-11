@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClickUp AI Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: #7b68ee;
+            color: white;
+            padding: 30px 0;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+
+        .card h2 {
+            color: #7b68ee;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e4e8;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #7b68ee;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        button {
+            background: #7b68ee;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            width: 100%;
+        }
+
+        button:hover {
+            background: #6c5ce7;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e1e4e8;
+            display: none;
+        }
+
+        .result.success {
+            border-color: #28a745;
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .result.error {
+            border-color: #dc3545;
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .lists-container {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .list-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .list-item button {
+            width: auto;
+            padding: 5px 15px;
+            font-size: 14px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #7b68ee;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .tab-container {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e1e4e8;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            transition: color 0.3s;
+        }
+
+        .tab.active {
+            color: #7b68ee;
+            border-bottom: 3px solid #7b68ee;
+            margin-bottom: -2px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #28a745;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="status">
+        <div class="status-dot"></div>
+        <span>API Connected</span>
+    </div>
+
+    <header>
+        <h1>🤖 ClickUp AI Assistant</h1>
+        <p>Powered by Claude AI - Create and analyze tasks intelligently</p>
+    </header>
+
+    <div class="container">
+        <div class="main-content">
+            <!-- Create Task Card -->
+            <div class="card">
+                <h2>🚀 Create AI Task</h2>
+                <form id="createTaskForm">
+                    <div class="form-group">
+                        <label for="taskPrompt">Describe your task:</label>
+                        <textarea id="taskPrompt" placeholder="Example: Create a task to implement user authentication with OAuth2, including Google and GitHub login options" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="listSelect">Select List (optional):</label>
+                        <select id="listSelect">
+                            <option value="">Use default list</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" id="createBtn">
+                        Create Task with AI
+                    </button>
+                </form>
+
+                <div id="createResult" class="result"></div>
+            </div>
+
+            <!-- Analyze Task Card -->
+            <div class="card">
+                <h2>📊 Analyze Task</h2>
+                
+                <div class="tab-container">
+                    <button class="tab active" onclick="switchTab('analyze')">Analyze</button>
+                    <button class="tab" onclick="switchTab('comment')">Add Comment</button>
+                </div>
+
+                <div id="analyzeTab" class="tab-content active">
+                    <form id="analyzeTaskForm">
+                        <div class="form-group">
+                            <label for="taskId">Task ID or URL:</label>
+                            <input type="text" id="taskId" placeholder="Enter task ID or paste ClickUp task URL" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="analysisType">Analysis Type:</label>
+                            <select id="analysisType">
+                                <option value="analyze">Full Analysis</option>
+                                <option value="summarize">Summarize</option>
+                                <option value="generate_description">Generate Description</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" id="analyzeBtn">
+                            Analyze with AI
+                        </button>
+                    </form>
+                </div>
+
+                <div id="commentTab" class="tab-content">
+                    <form id="commentForm">
+                        <div class="form-group">
+                            <label for="commentTaskId">Task ID or URL:</label>
+                            <input type="text" id="commentTaskId" placeholder="Enter task ID or paste ClickUp task URL" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="commentPrompt">Your question or comment:</label>
+                            <textarea id="commentPrompt" placeholder="Example: What are the security considerations for this feature?" required></textarea>
+                        </div>
+
+                        <button type="submit" id="commentBtn">
+                            Add AI Comment
+                        </button>
+                    </form>
+                </div>
+
+                <div id="analyzeResult" class="result"></div>
+            </div>
+        </div>
+
+        <!-- Lists Section -->
+        <div class="card">
+            <h2>📋 Your ClickUp Lists</h2>
+            <p>Click "Refresh Lists" to see all available lists in your workspace</p>
+            <button onclick="fetchLists()" style="margin-top: 10px;">Refresh Lists</button>
+            <div id="listsContainer" class="lists-container" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '';  // Will use same domain
+        let currentLists = [];
+
+        // Check API status
+        async function checkStatus() {
+            try {
+                const response = await fetch('/health');
+                const data = await response.json();
+                document.querySelector('.status-dot').style.background = '#28a745';
+                document.querySelector('.status span').textContent = 'API Connected';
+            } catch (error) {
+                document.querySelector('.status-dot').style.background = '#dc3545';
+                document.querySelector('.status span').textContent = 'API Disconnected';
+            }
+        }
+
+        // Extract task ID from URL or ID
+        function extractTaskId(input) {
+            // If it's a URL
+            if (input.includes('clickup.com')) {
+                const matches = input.match(/\/t\/([a-zA-Z0-9]+)/);
+                return matches ? matches[1] : input;
+            }
+            return input;
+        }
+
+        // Switch tabs
+        function switchTab(tabName) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+            
+            if (tabName === 'analyze') {
+                tabs[0].classList.add('active');
+                document.getElementById('analyzeTab').classList.add('active');
+            } else {
+                tabs[1].classList.add('active');
+                document.getElementById('commentTab').classList.add('active');
+            }
+        }
+
+        // Fetch lists
+        async function fetchLists() {
+            const container = document.getElementById('listsContainer');
+            container.style.display = 'block';
+            container.innerHTML = '<div class="loading"></div> Loading lists...';
+
+            try {
+                const response = await fetch('/api/setup/lists');
+                const data = await response.json();
+
+                if (data.success) {
+                    currentLists = data.lists;
+                    displayLists(data);
+                } else {
+                    container.innerHTML = `<p style="color: #dc3545;">Error: ${data.error}</p>`;
+                }
+            } catch (error) {
+                container.innerHTML = '<p style="color: #dc3545;">Failed to fetch lists. Check your connection.</p>';
+            }
+        }
+
+        // Display lists
+        function displayLists(data) {
+            const container = document.getElementById('listsContainer');
+            const select = document.getElementById('listSelect');
+            
+            let html = `<p><strong>Workspace:</strong> ${data.workspace.name}</p>`;
+            html += `<p><strong>Current Default List ID:</strong> ${data.currentDefaultListId}</p>`;
+            html += '<div style="margin-top: 20px;">';
+            
+            // Clear and update select options
+            select.innerHTML = '<option value="">Use default list</option>';
+            
+            data.lists.forEach(list => {
+                html += `
+                    <div class="list-item">
+                        <div>
+                            <strong>${list.name}</strong> (${list.space})
+                            <br>
+                            <small>ID: ${list.id}</small>
+                        </div>
+                        <button onclick="selectList('${list.id}', '${list.name}')">Select</button>
+                    </div>
+                `;
+                
+                // Add to select dropdown
+                const option = document.createElement('option');
+                option.value = list.id;
+                option.textContent = `${list.name} (${list.space})`;
+                select.appendChild(option);
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Select a list
+        function selectList(listId, listName) {
+            document.getElementById('listSelect').value = listId;
+            alert(`Selected list: ${listName}`);
+        }
+
+        // Create task form
+        document.getElementById('createTaskForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const button = document.getElementById('createBtn');
+            const resultDiv = document.getElementById('createResult');
+            const prompt = document.getElementById('taskPrompt').value;
+            const listId = document.getElementById('listSelect').value;
+            
+            button.disabled = true;
+            button.innerHTML = 'Creating... <div class="loading" style="display: inline-block; vertical-align: middle;"></div>';
+            resultDiv.style.display = 'none';
+            
+            try {
+                const body = { prompt };
+                if (listId) body.listId = listId;
+                
+                const response = await fetch('/api/claude-to-clickup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <strong>✅ Task Created Successfully!</strong><br>
+                        <strong>Task:</strong> ${data.task.name}<br>
+                        <strong>ID:</strong> ${data.task.id}<br>
+                        <strong>Status:</strong> ${data.task.status?.status || 'Created'}<br>
+                        <a href="${data.task.url}" target="_blank">Open in ClickUp →</a>
+                    `;
+                    document.getElementById('taskPrompt').value = '';
+                } else {
+                    throw new Error(data.error || 'Failed to create task');
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>❌ Error:</strong> ${error.message}`;
+            }
+            
+            resultDiv.style.display = 'block';
+            button.disabled = false;
+            button.textContent = 'Create Task with AI';
+        });
+
+        // Analyze task form
+        document.getElementById('analyzeTaskForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const button = document.getElementById('analyzeBtn');
+            const resultDiv = document.getElementById('analyzeResult');
+            const taskInput = document.getElementById('taskId').value;
+            const taskId = extractTaskId(taskInput);
+            const action = document.getElementById('analysisType').value;
+            
+            button.disabled = true;
+            button.innerHTML = 'Analyzing... <div class="loading" style="display: inline-block; vertical-align: middle;"></div>';
+            resultDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/clickup-to-claude', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ taskId, action })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <strong>✅ Analysis Complete!</strong><br><br>
+                        <strong>Task:</strong> ${data.task.name}<br>
+                        <strong>Status:</strong> ${data.task.status?.status || 'Unknown'}<br><br>
+                        <strong>AI Analysis:</strong><br>
+                        <div style="white-space: pre-wrap; margin-top: 10px;">${data.claudeResponse}</div>
+                    `;
+                } else {
+                    throw new Error(data.error || 'Failed to analyze task');
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>❌ Error:</strong> ${error.message}`;
+            }
+            
+            resultDiv.style.display = 'block';
+            button.disabled = false;
+            button.textContent = 'Analyze with AI';
+        });
+
+        // Comment form
+        document.getElementById('commentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const button = document.getElementById('commentBtn');
+            const resultDiv = document.getElementById('analyzeResult');
+            const taskInput = document.getElementById('commentTaskId').value;
+            const taskId = extractTaskId(taskInput);
+            const prompt = document.getElementById('commentPrompt').value;
+            
+            button.disabled = true;
+            button.innerHTML = 'Adding comment... <div class="loading" style="display: inline-block; vertical-align: middle;"></div>';
+            resultDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/claude-to-clickup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt, taskId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <strong>✅ Comment Added Successfully!</strong><br>
+                        <strong>Task ID:</strong> ${data.taskId}<br>
+                        <strong>AI Response:</strong><br>
+                        <div style="white-space: pre-wrap; margin-top: 10px;">${data.comment.comment_text || 'Comment added'}</div>
+                    `;
+                    document.getElementById('commentPrompt').value = '';
+                } else {
+                    throw new Error(data.error || 'Failed to add comment');
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>❌ Error:</strong> ${error.message}`;
+            }
+            
+            resultDiv.style.display = 'block';
+            button.disabled = false;
+            button.textContent = 'Add AI Comment';
+        });
+
+        // Initialize
+        checkStatus();
+        setInterval(checkStatus, 30000); // Check every 30 seconds
+    </script>
+</body>
+</html>
