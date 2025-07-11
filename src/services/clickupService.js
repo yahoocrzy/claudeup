@@ -9,18 +9,14 @@ class ClickUpService {
       'Authorization': this.apiToken,
       'Content-Type': 'application/json'
     };
-    
-    // Create axios instance with default timeout
-    this.client = axios.create({
-      timeout: 10000, // 10 second timeout
-      headers: this.headers
-    });
   }
 
   // Get workspace teams
   async getTeams() {
     try {
-      const response = await this.client.get(`${this.apiUrl}/team`);
+      const response = await axios.get(`${this.apiUrl}/team`, {
+        headers: this.headers
+      });
       return response.data.teams;
     } catch (error) {
       console.error('Error fetching teams:', error.response?.data || error.message);
@@ -31,7 +27,9 @@ class ClickUpService {
   // Get spaces in a workspace
   async getSpaces(teamId) {
     try {
-      const response = await this.client.get(`${this.apiUrl}/team/${teamId}/space`);
+      const response = await axios.get(`${this.apiUrl}/team/${teamId}/space`, {
+        headers: this.headers
+      });
       return response.data.spaces;
     } catch (error) {
       console.error('Error fetching spaces:', error.response?.data || error.message);
@@ -42,7 +40,9 @@ class ClickUpService {
   // Get lists in a space
   async getLists(spaceId) {
     try {
-      const response = await this.client.get(`${this.apiUrl}/space/${spaceId}/list`);
+      const response = await axios.get(`${this.apiUrl}/space/${spaceId}/list`, {
+        headers: this.headers
+      });
       return response.data.lists;
     } catch (error) {
       console.error('Error fetching lists:', error.response?.data || error.message);
@@ -53,7 +53,9 @@ class ClickUpService {
   // Create a task
   async createTask(listId, taskData) {
     try {
-      const response = await this.client.post(`${this.apiUrl}/list/${listId}/task`, taskData);
+      const response = await axios.post(`${this.apiUrl}/list/${listId}/task`, taskData, {
+        headers: this.headers
+      });
       return response.data;
     } catch (error) {
       console.error('Error creating task:', error.response?.data || error.message);
@@ -64,7 +66,9 @@ class ClickUpService {
   // Get task by ID
   async getTask(taskId) {
     try {
-      const response = await this.client.get(`${this.apiUrl}/task/${taskId}`);
+      const response = await axios.get(`${this.apiUrl}/task/${taskId}`, {
+        headers: this.headers
+      });
       return response.data;
     } catch (error) {
       console.error('Error fetching task:', error.response?.data || error.message);
@@ -75,7 +79,9 @@ class ClickUpService {
   // Update task
   async updateTask(taskId, updateData) {
     try {
-      const response = await this.client.put(`${this.apiUrl}/task/${taskId}`, updateData);
+      const response = await axios.put(`${this.apiUrl}/task/${taskId}`, updateData, {
+        headers: this.headers
+      });
       return response.data;
     } catch (error) {
       console.error('Error updating task:', error.response?.data || error.message);
@@ -86,8 +92,10 @@ class ClickUpService {
   // Add comment to task
   async addComment(taskId, comment) {
     try {
-      const response = await this.client.post(`${this.apiUrl}/task/${taskId}/comment`, {
+      const response = await axios.post(`${this.apiUrl}/task/${taskId}/comment`, {
         comment_text: comment
+      }, {
+        headers: this.headers
       });
       return response.data;
     } catch (error) {
@@ -99,7 +107,9 @@ class ClickUpService {
   // Get task comments
   async getComments(taskId) {
     try {
-      const response = await this.client.get(`${this.apiUrl}/task/${taskId}/comment`);
+      const response = await axios.get(`${this.apiUrl}/task/${taskId}/comment`, {
+        headers: this.headers
+      });
       return response.data.comments;
     } catch (error) {
       console.error('Error fetching comments:', error.response?.data || error.message);

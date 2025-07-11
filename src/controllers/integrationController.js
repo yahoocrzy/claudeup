@@ -1,8 +1,6 @@
 const claudeService = require('../services/claudeService');
 const clickupService = require('../services/clickupService');
 const config = require('../config/config');
-const { validateRequest } = require('../utils/validation');
-const { verifyWebhookSignature } = require('../middleware/auth');
 
 class IntegrationController {
   // Process Claude response and create/update ClickUp task
@@ -95,19 +93,16 @@ class IntegrationController {
     }
   }
 
-  // Handle ClickUp webhooks (with signature verification)
-  async clickUpWebhook(req, res, next) {
-    // First verify the webhook signature
-    verifyWebhookSignature(req, res, (err) => {
-      if (err) return next(err);
-      
-      this._handleWebhook(req, res).catch(next);
-    });
-  }
-
-  async _handleWebhook(req, res) {
+  // Handle ClickUp webhooks
+  async clickUpWebhook(req, res) {
     try {
       const { event, task_id, history_items } = req.body;
+
+      // Verify webhook secret if configured
+      if (config.webhook.secret) {
+        const signature = req.headers['x-signature'];
+        // Implement signature verification logic here
+      }
 
       console.log('Webhook received:', event);
 
@@ -135,128 +130,6 @@ class IntegrationController {
     } catch (error) {
       console.error('Error processing webhook:', error);
       res.status(500).json({ error: error.message });
-    }
-  }
-
-  // Get all lists in the workspace
-  async getAllLists(req, res) {
-    try {
-      // First get teams
-      const teams = await clickupService.getTeams();
-      if (!teams || teams.length === 0) {
-        return res.status(404).json({ error: 'No teams found' });
-      }
-
-      // Use the first team or match workspace ID
-      const team = teams.find(t => t.id === config.clickup.workspaceId) || teams[0];
-      
-      // Get spaces in the team
-      const spaces = await clickupService.getSpaces(team.id);
-      
-      // Get all lists from all spaces
-      const allLists = [];
-      for (const space of spaces) {
-        const lists = await clickupService.getLists(space.id);
-        lists.forEach(list => {
-          allLists.push({
-            id: list.id,
-            name: list.name,
-            space: space.name,
-            status: list.status,
-            task_count: list.task_count
-          });
-        });
-      }
-
-      res.json({
-        success: true,
-        workspace: {
-          id: team.id,
-          name: team.name
-        },
-        lists: allLists,
-        defaultListId: config.clickup.defaultListId,
-        message: `Found ${allLists.length} lists in ${spaces.length} spaces`
-      });
-    } catch (error) {
-      console.error('Error fetching lists:', error);
-      res.status(500).json({ error: error.message });
-    }
-  }
-
-  // Get workspace information
-  async getWorkspaceInfo(req, res) {
-    try {
-      const teams = await clickupService.getTeams();
-      
-      const workspaceInfo = teams.map(team => ({
-        id: team.id,
-        name: team.name,
-        color: team.color,
-        members: team.members?.length || 0
-      }));
-
-      res.json({
-        success: true,
-        workspaces: workspaceInfo,
-        configuredWorkspaceId: config.clickup.workspaceId,
-        message: `Found ${workspaceInfo.length} workspace(s)`
-      });
-    } catch (error) {
-      console.error('Error fetching workspace info:', error);
-      res.status(500).json({ error: error.message });
-    }
-  }
-
-  // Setup helper - get lists without authentication (for initial setup only)
-  async getSetupLists(req, res) {
-    try {
-      // Only work if ClickUp token is configured
-      if (!config.clickup.apiToken || config.clickup.apiToken === 'your_clickup_api_token_here') {
-        return res.status(400).json({ 
-          error: 'ClickUp API token not configured',
-          message: 'Please set CLICKUP_API_TOKEN in your environment variables'
-        });
-      }
-
-      const teams = await clickupService.getTeams();
-      if (!teams || teams.length === 0) {
-        return res.status(404).json({ error: 'No teams found. Check your ClickUp API token.' });
-      }
-
-      const team = teams.find(t => t.id === config.clickup.workspaceId) || teams[0];
-      const spaces = await clickupService.getSpaces(team.id);
-      
-      const allLists = [];
-      for (const space of spaces) {
-        const lists = await clickupService.getLists(space.id);
-        lists.forEach(list => {
-          allLists.push({
-            id: list.id,
-            name: list.name,
-            space: space.name
-          });
-        });
-      }
-
-      res.json({
-        success: true,
-        workspace: {
-          id: team.id,
-          name: team.name,
-          configuredId: config.clickup.workspaceId
-        },
-        lists: allLists,
-        currentDefaultListId: config.clickup.defaultListId,
-        setupInstructions: 'Update your CLICKUP_LIST_ID environment variable with one of the list IDs above'
-      });
-    } catch (error) {
-      console.error('Setup error:', error);
-      res.status(500).json({ 
-        error: 'Failed to fetch lists',
-        details: error.response?.data || error.message,
-        hint: 'Check your CLICKUP_API_TOKEN and CLICKUP_WORKSPACE_ID'
-      });
     }
   }
 }

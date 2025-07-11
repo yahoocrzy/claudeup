@@ -25,8 +25,7 @@ class ClaudeService {
           'x-api-key': this.apiKey,
           'anthropic-version': '2023-06-01',
           'Content-Type': 'application/json'
-        },
-        timeout: 30000 // 30 second timeout
+        }
       });
 
       return response.data.content[0].text;
