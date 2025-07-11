@@ -49,7 +49,84 @@ This API integrates Claude AI with ClickUp, allowing you to leverage AI capabili
    npm run dev
    ```
 
+## Security Configuration
+
+### API Authentication
+
+All API endpoints (except webhooks and health check) require authentication:
+
+```bash
+# Include API key in request headers
+curl -X POST http://localhost:3000/api/claude-to-clickup \
+  -H "X-API-Key: your_api_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "Create a task"}'
+```
+
+### Production Security Settings
+
+For production deployment, configure these environment variables:
+
+```env
+# Required for production
+NODE_ENV=production
+API_KEY=your_secure_api_key_minimum_32_characters
+
+# CORS configuration
+ALLOWED_ORIGINS=https://yourdomain.com,https://app.yourdomain.com
+
+# Webhook signature verification
+WEBHOOK_SECRET=your_webhook_secret_for_signature_verification
+```
+
+### Security Features
+
+- **Rate Limiting**: 100 requests per 15 minutes per IP
+- **CORS Protection**: Configure allowed origins
+- **Helmet.js**: Security headers automatically applied
+- **Input Validation**: All inputs validated with Joi
+- **Webhook Verification**: HMAC signature verification for webhooks
+- **Request Timeouts**: 30s for Claude API, 10s for ClickUp API
+
 ## API Endpoints
+
+### GET /api/lists
+Get all lists in your workspace to find List IDs.
+
+```bash
+curl -X GET http://localhost:3000/api/lists \
+  -H "X-API-Key: your_api_key_here"
+```
+
+Response:
+```json
+{
+  "success": true,
+  "workspace": {
+    "id": "90131200859",
+    "name": "Your Workspace"
+  },
+  "lists": [
+    {
+      "id": "86a9z79jh",
+      "name": "To Do",
+      "space": "Main Space",
+      "status": "active",
+      "task_count": 5
+    }
+  ],
+  "defaultListId": "86a9z79jh",
+  "message": "Found 3 lists in 1 spaces"
+}
+```
+
+### GET /api/workspace-info
+Get information about your ClickUp workspaces.
+
+```bash
+curl -X GET http://localhost:3000/api/workspace-info \
+  -H "X-API-Key: your_api_key_here"
+```
 
 ### POST /api/claude-to-clickup
 Send a prompt to Claude and create/update a ClickUp task with the response.

@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: claude-clickup-integration
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CLAUDE_API_KEY
+        sync: false
+      - key: CLICKUP_API_TOKEN
+        sync: false
+      - key: CLICKUP_WORKSPACE_ID
+        sync: false
+      - key: CLICKUP_LIST_ID
+        sync: false
+      - key: WEBHOOK_SECRET
+        generateValue: true

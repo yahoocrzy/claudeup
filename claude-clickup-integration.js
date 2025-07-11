@@ -1,0 +1,2 @@
+CLICKUP_API_KEY=pk_your_clickup_api_key_here
+CLICKUP_TEAM_ID=your_team_id_number_here
