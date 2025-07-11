@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Claude AI for ClickUp",
+  "version": "1.0",
+  "description": "Add AI-powered task creation and analysis directly in ClickUp",
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://app.clickup.com/*",
+    "https://claudeup.onrender.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://app.clickup.com/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Claude AI for ClickUp"
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
