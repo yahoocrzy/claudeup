@@ -390,15 +390,20 @@
             try {
                 const response = await fetch('/api/setup/lists');
                 const data = await response.json();
+                
+                console.log('Lists response:', data); // Debug logging
 
                 if (data.success) {
                     currentLists = data.lists;
                     displayLists(data);
                 } else {
-                    container.innerHTML = `<p style="color: #dc3545;">Error: ${data.error}</p>`;
+                    container.innerHTML = `<p style="color: #dc3545;">Error: ${data.error || 'Unknown error'}</p>
+                                         <p style="color: #666; font-size: 14px;">Response: ${JSON.stringify(data)}</p>`;
                 }
             } catch (error) {
-                container.innerHTML = '<p style="color: #dc3545;">Failed to fetch lists. Check your connection.</p>';
+                console.error('Fetch lists error:', error);
+                container.innerHTML = `<p style="color: #dc3545;">Failed to fetch lists: ${error.message}</p>
+                                     <p style="color: #666; font-size: 14px;">Check browser console for details.</p>`;
             }
         }
 
@@ -460,13 +465,23 @@
                 const body = { prompt };
                 if (listId) body.listId = listId;
                 
+                console.log('Creating task with:', body); // Debug logging
+                
                 const response = await fetch('/api/claude-to-clickup', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
                 });
                 
+                console.log('Response status:', response.status); // Debug logging
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
                 const data = await response.json();
+                console.log('Task creation response:', data); // Debug logging
                 
                 if (data.success) {
                     resultDiv.className = 'result success';
@@ -506,13 +521,23 @@
             resultDiv.style.display = 'none';
             
             try {
+                console.log('Analyzing task:', { taskId, action }); // Debug logging
+                
                 const response = await fetch('/api/clickup-to-claude', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ taskId, action })
                 });
                 
+                console.log('Analyze response status:', response.status); // Debug logging
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
                 const data = await response.json();
+                console.log('Analyze response:', data); // Debug logging
                 
                 if (data.success) {
                     resultDiv.className = 'result success';
@@ -551,13 +576,23 @@
             resultDiv.style.display = 'none';
             
             try {
+                console.log('Adding comment:', { prompt, taskId }); // Debug logging
+                
                 const response = await fetch('/api/claude-to-clickup', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ prompt, taskId })
                 });
                 
+                console.log('Comment response status:', response.status); // Debug logging
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
                 const data = await response.json();
+                console.log('Comment response:', data); // Debug logging
                 
                 if (data.success) {
                     resultDiv.className = 'result success';

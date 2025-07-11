@@ -58,13 +58,13 @@ app.get('/health', (req, res) => {
 // Setup helper endpoint (no auth required for initial setup)
 app.get('/api/setup/lists', integrationController.getSetupLists);
 
-// Helper endpoints
-app.get('/api/lists', authenticateRequest, integrationController.getAllLists);
-app.get('/api/workspace-info', authenticateRequest, integrationController.getWorkspaceInfo);
+// Helper endpoints (no auth for web interface)
+app.get('/api/lists', integrationController.getAllLists);
+app.get('/api/workspace-info', integrationController.getWorkspaceInfo);
 
-// Integration endpoints (protected with API key)
-app.post('/api/claude-to-clickup', authenticateRequest, integrationController.claudeToClickUp);
-app.post('/api/clickup-to-claude', authenticateRequest, integrationController.clickUpToClaude);
+// Integration endpoints (no auth for web interface)
+app.post('/api/claude-to-clickup', integrationController.claudeToClickUp);
+app.post('/api/clickup-to-claude', integrationController.clickUpToClaude);
 app.post('/api/webhook/clickup', integrationController.clickUpWebhook); // Webhook uses signature verification instead
 
 // Error handling middleware
