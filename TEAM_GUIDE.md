@@ -6,11 +6,15 @@ Our team now has access to an AI-powered integration that connects Claude AI wit
 
 **API Base URL:** `https://claudeup.onrender.com`
 
-## 🔑 API Key Setup
+## 🔑 Authentication Setup
 
-**Your team API key:** `your_team_api_key` *(Ask your tech lead for the actual key)*
+**Team Credentials:**
+- **Username:** `teamuser` 
+- **Password:** `teampass123`
 
-All API requests require the `X-API-Key` header with your team's API key. This ensures only authorized team members can create tasks and access the integration.
+*(Ask your tech lead for the actual credentials)*
+
+All API requests require Basic Authentication. This ensures only authorized team members can create tasks and access the integration.
 
 ---
 
@@ -41,7 +45,7 @@ All API requests require the `X-API-Key` header with your team's API key. This e
 ```bash
 curl -X POST https://claudeup.onrender.com/api/claude-to-clickup \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: your_team_api_key" \
+  -u "teamuser:teampass123" \
   -d '{
     "prompt": "Create a task to implement user authentication with OAuth2 including Google and GitHub login options"
   }'
@@ -51,7 +55,7 @@ curl -X POST https://claudeup.onrender.com/api/claude-to-clickup \
 ```bash
 curl -X POST https://claudeup.onrender.com/api/clickup-to-claude \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: your_team_api_key" \
+  -u "teamuser:teampass123" \
   -d '{
     "taskId": "86a9z79jh",
     "action": "analyze"
@@ -62,7 +66,7 @@ curl -X POST https://claudeup.onrender.com/api/clickup-to-claude \
 ```bash
 curl -X POST https://claudeup.onrender.com/api/claude-to-clickup \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: your_team_api_key" \
+  -u "teamuser:teampass123" \
   -d '{
     "prompt": "What are the security considerations for this authentication feature?",
     "taskId": "86a9z79jh"
@@ -73,10 +77,11 @@ curl -X POST https://claudeup.onrender.com/api/claude-to-clickup \
 
 1. **Set Request Type:** POST
 2. **Set URL:** `https://claudeup.onrender.com/api/claude-to-clickup`
-3. **Set Headers:** 
-   - `Content-Type: application/json`
-   - `X-API-Key: your_team_api_key`
-4. **Set Body (JSON):**
+3. **Set Authorization:** Basic Auth
+   - **Username:** `teamuser`
+   - **Password:** `teampass123`
+4. **Set Headers:** `Content-Type: application/json`
+5. **Set Body (JSON):**
    ```json
    {
      "prompt": "Your task description here"
@@ -87,12 +92,14 @@ curl -X POST https://claudeup.onrender.com/api/claude-to-clickup \
 
 ```javascript
 // Create a task
-async function createAITask(description, apiKey) {
+async function createAITask(description, username, password) {
+  const credentials = btoa(`${username}:${password}`);
+  
   const response = await fetch('https://claudeup.onrender.com/api/claude-to-clickup', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-API-Key': apiKey
+      'Authorization': `Basic ${credentials}`
     },
     body: JSON.stringify({
       prompt: description
@@ -104,7 +111,7 @@ async function createAITask(description, apiKey) {
 }
 
 // Usage
-createAITask("Create a task for implementing dark mode toggle with user preferences", "your_team_api_key");
+createAITask("Create a task for implementing dark mode toggle with user preferences", "teamuser", "teampass123");
 ```
 
 ---

@@ -4,21 +4,28 @@ const integrationController = require('./src/controllers/integrationController')
 
 const app = express();
 
-// Simple API key authentication middleware
+// Basic Auth (username/password) middleware
 const authenticateRequest = (req, res, next) => {
-  // Skip auth if no API_KEY is configured
-  if (!config.apiKey) {
+  // Skip auth if no credentials are configured
+  if (!config.auth.username || !config.auth.password) {
     return next();
   }
 
-  const apiKey = req.headers['x-api-key'] || req.headers['authorization']?.replace('Bearer ', '');
+  const authHeader = req.headers.authorization;
   
-  if (!apiKey) {
-    return res.status(401).json({ error: 'API key required. Include X-API-Key header.' });
+  if (!authHeader || !authHeader.startsWith('Basic ')) {
+    return res.status(401).json({ 
+      error: 'Authentication required. Use Basic Auth with username and password.',
+      hint: 'Include Authorization: Basic <base64(username:password)> header'
+    });
   }
 
-  if (apiKey !== config.apiKey) {
-    return res.status(401).json({ error: 'Invalid API key.' });
+  const base64Credentials = authHeader.split(' ')[1];
+  const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+  const [username, password] = credentials.split(':');
+
+  if (username !== config.auth.username || password !== config.auth.password) {
+    return res.status(401).json({ error: 'Invalid username or password.' });
   }
 
   next();

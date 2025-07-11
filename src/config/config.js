@@ -19,7 +19,10 @@ const config = {
   webhook: {
     secret: process.env.WEBHOOK_SECRET
   },
-  apiKey: process.env.API_KEY
+  auth: {
+    username: process.env.AUTH_USERNAME,
+    password: process.env.AUTH_PASSWORD
+  }
 };
 
 module.exports = config;
